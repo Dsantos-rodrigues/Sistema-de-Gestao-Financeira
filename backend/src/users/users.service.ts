@@ -1,51 +1,51 @@
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { User } from './user.entity';
 
-// esse tipo representa um usuário dentro do sistema
-// por enquanto tá simples assim, mas quando a Bianca montar o banco
-// a gente vai trocar pra uma entidade do TypeORM
-export type Usuario = {
-  id: number;
-  nome: string;
-  email: string;
-  senhaHash: string; // nunca salvamos a senha em texto puro — sempre o hash
-};
-
+/**
+ * Serviço responsável pelas operações de usuário.
+ * Gerencia criação e busca de usuários no banco de dados.
+ */
 @Injectable()
 export class UsersService {
-  // estou usando uma lista em memória por enquanto
-  // assim a gente consegue testar o fluxo de login sem precisar do banco pronto
-  // quando o PostgreSQL estiver configurado, só trocar esse array por queries reais
-  private usuarios: Usuario[] = [];
+  constructor(
+    // Injeta o repositório do TypeORM para a entity User
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+  ) {}
 
-  constructor() {
-    // criando um usuário de teste pra gente poder testar o login agora
-    // esse bloco some quando conectarmos ao banco de verdade
-    this.criarUsuarioDeTeste();
-  }
+  /**
+   * Cria um novo usuário com a senha criptografada.
+   * @param nome - Nome completo do usuário
+   * @param email - Email único do usuário
+   * @param senha - Senha em texto puro (será criptografada)
+   * @returns O usuário criado sem a senha_hash
+   */
+  async criar(nome: string, email: string, senha: string): Promise<Omit<User, 'senha_hash'>> {
+    // Gera o hash da senha com custo 10 (recomendado para produção)
+    const senha_hash = await bcrypt.hash(senha, 10);
 
-  private async criarUsuarioDeTeste() {
-    // o bcrypt transforma a senha em um hash irreversível
-    // o número 10 é o "custo" — quanto maior, mais seguro, mas mais lento
-    // 10 é o ponto doce que a maioria dos projetos usa
-    const hash = await bcrypt.hash('senha123', 10);
-
-    this.usuarios.push({
-      id: 1,
-      nome: 'Anderson Teste',
-      email: 'anderson@teste.com',
-      senhaHash: hash,
+    const usuario = this.usersRepository.create({
+      nome,
+      email,
+      senha_hash,
     });
+
+    const salvo = await this.usersRepository.save(usuario);
+
+    // Remove a senha_hash antes de retornar para não expor dados sensíveis
+    const { senha_hash: _, ...resultado } = salvo;
+    return resultado;
   }
 
-  async buscarPorEmail(email: string): Promise<Usuario | undefined> {
-    return this.usuarios.find((u) => u.email === email);
-  }
-
-  async criar(nome: string, email: string, senhaHash: string): Promise<Usuario> {
-    const novoId = this.usuarios.length + 1;
-    const usuario: Usuario = { id: novoId, nome, email, senhaHash };
-    this.usuarios.push(usuario);
-    return usuario;
+  /**
+   * Busca um usuário pelo email.
+   * @param email - Email do usuário a ser buscado
+   * @returns O usuário encontrado ou null
+   */
+  async buscarPorEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
   }
 }

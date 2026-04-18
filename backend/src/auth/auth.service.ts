@@ -24,7 +24,7 @@ export class AuthService {
 
     // agora compara a senha que o usuário digitou com o hash que está salvo
     // o bcrypt sabe fazer essa comparação mesmo sem "desencriptar" nada
-    const senhaCorreta = await bcrypt.compare(dados.senha, usuario.senhaHash);
+    const senhaCorreta = await bcrypt.compare(dados.senha, usuario.senha_hash);
 
     if (!senhaCorreta) {
       // mesma mensagem de cima — não deixa o atacante saber se errou o email ou a senha

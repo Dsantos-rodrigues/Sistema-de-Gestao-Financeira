@@ -1,15 +1,19 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 
+/**
+ * Módulo raiz da aplicação.
+ * Configura o banco de dados e importa todos os módulos.
+ */
 @Module({
-  imports:    [
+  imports: [
+    // Carrega as variáveis de ambiente do .env globalmente
     ConfigModule.forRoot({ isGlobal: true }),
-    
+
+    // Configura a conexão com o PostgreSQL via TypeORM
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -17,7 +21,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
+      // Carrega todas as entities automaticamente
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      // Cria/atualiza as tabelas automaticamente — apenas em desenvolvimento!
       synchronize: true,
     }),
 

@@ -3,18 +3,35 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { CadastroDto } from './dto/cadastro.dto';
 
+/**
+ * Controller responsável pelas rotas de autenticação.
+ * Expõe os endpoints de registro e login.
+ */
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    // Injeta o serviço de autenticação
+    private authService: AuthService,
+  ) {}
 
+  /**
+   * Autentica um usuário existente.
+   * POST /auth/login
+   * @param dados - DTO com email e senha
+   * @returns Token JWT e dados do usuário
+   */
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() dados: LoginDto) {
     return this.authService.login(dados);
   }
 
-  // POST /auth/cadastro — cria uma nova conta e já devolve o token
-  // assim o usuário não precisa fazer login logo depois de se cadastrar
+  /**
+   * Registra um novo usuário e já retorna o token JWT.
+   * POST /auth/cadastro
+   * @param dados - DTO com nome, email e senha
+   * @returns Token JWT e dados do usuário criado
+   */
   @Post('cadastro')
   async cadastrar(@Body() dados: CadastroDto) {
     return this.authService.cadastrar(dados);

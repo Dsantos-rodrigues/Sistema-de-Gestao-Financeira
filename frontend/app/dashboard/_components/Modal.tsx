@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export function Modal({
   title,
@@ -34,8 +35,10 @@ export function Modal({
     lg: "max-w-2xl",
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-4 py-10 sm:items-center">
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto px-4 py-10 sm:items-center">
       <button
         type="button"
         aria-label="Fechar"
@@ -78,7 +81,8 @@ export function Modal({
         </header>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AssetModal, CategoryModal, TransactionModal } from "./AddForms";
 
-const ITEMS = [
+type ModalKey = "asset" | "tx" | "cat";
+
+const ITEMS: { key: ModalKey; label: string; description: string }[] = [
   {
     key: "asset",
     label: "Ativo",
@@ -18,10 +21,11 @@ const ITEMS = [
     label: "Categoria",
     description: "Categoria personalizada de fluxo",
   },
-] as const;
+];
 
 export function AddMenu() {
   const [open, setOpen] = useState(false);
+  const [modal, setModal] = useState<ModalKey | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,8 +45,14 @@ export function AddMenu() {
     };
   }, [open]);
 
+  function pick(k: ModalKey) {
+    setOpen(false);
+    setModal(k);
+  }
+
   return (
-    <div ref={ref} className="relative">
+    <>
+      <div ref={ref} className="relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -70,7 +80,7 @@ export function AddMenu() {
               <li key={it.key}>
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={() => pick(it.key)}
                   className="flex w-full items-start gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-zinc-50"
                 >
                   <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-gold-200/50 text-gold-600">
@@ -90,7 +100,12 @@ export function AddMenu() {
           </ul>
         </div>
       )}
-    </div>
+      </div>
+
+      {modal === "asset" && <AssetModal onClose={() => setModal(null)} />}
+      {modal === "tx" && <TransactionModal onClose={() => setModal(null)} />}
+      {modal === "cat" && <CategoryModal onClose={() => setModal(null)} />}
+    </>
   );
 }
 

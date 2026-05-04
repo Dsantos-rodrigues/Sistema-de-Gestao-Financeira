@@ -57,3 +57,29 @@ Rules to preserve when adding screens:
 - Primary CTA on light: `bg-ink-900 text-white`. Primary CTA on dark: `bg-gold-400 text-ink-900`.
 - Inputs: `rounded-lg`, 1px border, `focus:ring-4` with low-opacity ring (`ring-zinc-900/5` on light, `ring-gold-400/10` on dark).
 - Status / accent chips: low-opacity tinted bg + same-hue text + 1px inset ring (Stripe pattern).
+
+## Git workflow — IMPORTANT
+
+This is a **shared** repository (`Dsantos-rodrigues/Sistema-de-Gestao-Financeira`) with multiple devs working from feature branches (`anderson/...`, `feat/bianca-...`, `matheus/...`). Frontend work for Lehon happens on:
+
+- **Working branch:** `lehon/frontend-auth`
+- **Never push to `main`** directly — always work from a `lehon/<topic>` branch and open a PR.
+
+### Auto-push hook (active)
+
+A `Stop` hook is configured at `<project-root>/.claude/settings.json` (where project root = `C:\Users\lehon\OneDrive\Documentos\teste`) that, after each Claude turn, runs `<project-root>/.claude/hooks/auto-push.ps1`. The script:
+
+1. **No-ops if the current branch is not `lehon/frontend-auth`** — safety guard against accidental pushes from `main` or another dev's branch.
+2. **No-ops if there are no uncommitted changes.**
+3. Otherwise runs `git add -A` → `git commit -m "auto: update from Claude session [<timestamp>]"` (co-authored by Claude) → `git push origin lehon/frontend-auth`.
+
+What this means for future sessions:
+
+- If the work is on `lehon/frontend-auth` with the same setup, expect the remote to advance automatically each turn. **Don't `git stash`/`git reset` blindly between turns** — the hook will commit anything tracked.
+- If you create a new working branch (e.g. `lehon/dashboard`), update both the script's `$expectedBranch` and the auto-push reference here, otherwise the hook will silently no-op.
+- To temporarily disable: comment out the Stop hook in `<project-root>/.claude/settings.json` (or use `/hooks` in the Claude Code UI to toggle/inspect it).
+- After editing `.claude/settings.json`, the harness only re-reads it via `/hooks` or session restart.
+
+### When to commit manually
+
+The auto-push exists for incremental work; it doesn't replace intentional commits for milestones. For larger or release-worthy changes, prefer a manual commit with a meaningful subject + body before letting the hook take over again. PRs against `main` should be opened from the working branch on GitHub.

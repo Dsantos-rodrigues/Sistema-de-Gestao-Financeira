@@ -123,12 +123,12 @@ function LoginPanel() {
             />
           </div>
 
-          <button
-            type="submit"
+          <Link
+            href="/dashboard"
             className="mt-2 inline-flex items-center justify-center rounded-lg bg-ink-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-ink-800 focus:outline-none focus:ring-4 focus:ring-zinc-900/15"
           >
             Entrar
-          </button>
+          </Link>
 
           <div className="my-1 flex items-center gap-3 text-xs text-zinc-400">
             <span className="h-px flex-1 bg-zinc-200" />

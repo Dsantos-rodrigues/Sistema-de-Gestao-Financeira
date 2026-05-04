@@ -1,3 +1,4 @@
+import { AssetsPanel } from "../_components/AssetsPanel";
 import {
   Chip,
   KpiCard,
@@ -240,81 +241,7 @@ export default function PortfolioPage() {
         </Section>
       </div>
 
-      <Section
-        title="Ativos"
-        description={`${ASSETS.length} posições em 5 classes`}
-        action={
-          <button
-            type="button"
-            className="text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-900"
-          >
-            Filtrar
-          </button>
-        }
-        bodyPadding={false}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-zinc-100 text-[11px] font-medium uppercase tracking-wider text-zinc-500">
-                <th className="px-6 py-3 text-left">Ativo</th>
-                <th className="px-6 py-3 text-left">Classe</th>
-                <th className="px-6 py-3 text-right">Qtd.</th>
-                <th className="px-6 py-3 text-right">Preço</th>
-                <th className="px-6 py-3 text-right">Posição</th>
-                <th className="px-6 py-3 text-right">Retorno YTD</th>
-                <th className="px-6 py-3 text-right">Risco</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ASSETS.map((a) => {
-                const position = a.qty * a.price;
-                return (
-                  <tr
-                    key={a.ticker}
-                    className="border-b border-zinc-50 last:border-0 hover:bg-zinc-50/60"
-                  >
-                    <td className="px-6 py-3.5">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-ink-900">
-                          {a.ticker}
-                        </span>
-                        <span className="text-xs text-zinc-500">{a.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <ClassChip clsKey={a.clsKey} label={a.cls} />
-                    </td>
-                    <td className="px-6 py-3.5 text-right tabular-nums text-zinc-700">
-                      {a.qty < 10
-                        ? a.qty.toLocaleString("pt-BR", {
-                            minimumFractionDigits: 2,
-                          })
-                        : a.qty.toLocaleString("pt-BR")}
-                    </td>
-                    <td className="px-6 py-3.5 text-right tabular-nums text-zinc-700">
-                      {fmtBRL(a.price)}
-                    </td>
-                    <td className="px-6 py-3.5 text-right tabular-nums font-medium text-ink-900">
-                      {fmtBRL(position)}
-                    </td>
-                    <td
-                      className={`px-6 py-3.5 text-right tabular-nums font-medium ${
-                        a.return >= 0 ? "text-emerald-600" : "text-rose-600"
-                      }`}
-                    >
-                      {fmtPct(a.return, { withSign: true })}
-                    </td>
-                    <td className="px-6 py-3.5 text-right">
-                      <RiskMeter value={a.risk} />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </Section>
+      <AssetsPanel />
     </div>
   );
 }
@@ -454,36 +381,3 @@ function RiskReturnScatter() {
   );
 }
 
-function ClassChip({
-  clsKey,
-  label,
-}: {
-  clsKey: keyof typeof CLASS_COLORS;
-  label: string;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-zinc-700">
-      <span
-        className="h-1.5 w-1.5 rounded-full"
-        style={{ background: CLASS_COLORS[clsKey] }}
-      />
-      {label}
-    </span>
-  );
-}
-
-function RiskMeter({ value }: { value: number }) {
-  const tone =
-    value < 30 ? "bg-emerald-500" : value < 60 ? "bg-amber-500" : "bg-rose-500";
-  return (
-    <div className="ml-auto flex items-center justify-end gap-2">
-      <span className="text-xs tabular-nums text-zinc-500">{value}</span>
-      <span className="relative h-1.5 w-16 overflow-hidden rounded-full bg-zinc-100">
-        <span
-          className={`absolute inset-y-0 left-0 rounded-full ${tone}`}
-          style={{ width: `${value}%` }}
-        />
-      </span>
-    </div>
-  );
-}

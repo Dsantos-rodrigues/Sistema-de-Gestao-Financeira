@@ -1,163 +1,12 @@
+import { AllocationDonut } from "../_components/AllocationDonut";
 import { AssetsPanel } from "../_components/AssetsPanel";
-import {
-  Chip,
-  KpiCard,
-  PageHeader,
-  Section,
-  fmtBRL,
-  fmtPct,
-} from "../_components/ui";
+import { EvolucaoChart } from "../_components/EvolucaoChart";
+import { Chip, KpiCard, PageHeader, Section, fmtBRL } from "../_components/ui";
 
-const CLASS_COLORS = {
-  acoes: "#c89b3c",
-  fiis: "#18181b",
-  exterior: "#475569",
-  cripto: "#92400e",
-  rf: "#a1a1aa",
-} as const;
-
-const ALLOCATION = [
-  {
-    key: "acoes" as const,
-    label: "Ações BR",
-    value: 399382,
-    pct: 0.32,
-    color: CLASS_COLORS.acoes,
-  },
-  {
-    key: "exterior" as const,
-    label: "Exterior",
-    value: 349267,
-    pct: 0.28,
-    color: CLASS_COLORS.exterior,
-  },
-  {
-    key: "fiis" as const,
-    label: "FIIs",
-    value: 224529,
-    pct: 0.18,
-    color: CLASS_COLORS.fiis,
-  },
-  {
-    key: "rf" as const,
-    label: "Renda fixa",
-    value: 174634,
-    pct: 0.14,
-    color: CLASS_COLORS.rf,
-  },
-  {
-    key: "cripto" as const,
-    label: "Cripto",
-    value: 99570,
-    pct: 0.08,
-    color: CLASS_COLORS.cripto,
-  },
-];
-
-const ASSETS = [
-  {
-    ticker: "VALE3",
-    name: "Vale ON",
-    cls: "Ações BR",
-    clsKey: "acoes" as const,
-    qty: 800,
-    price: 67.42,
-    return: 0.184,
-    risk: 58,
-  },
-  {
-    ticker: "ITUB4",
-    name: "Itaú PN",
-    cls: "Ações BR",
-    clsKey: "acoes" as const,
-    qty: 1200,
-    price: 38.91,
-    return: 0.213,
-    risk: 42,
-  },
-  {
-    ticker: "PETR4",
-    name: "Petrobras PN",
-    cls: "Ações BR",
-    clsKey: "acoes" as const,
-    qty: 600,
-    price: 41.78,
-    return: 0.094,
-    risk: 71,
-  },
-  {
-    ticker: "HGLG11",
-    name: "CSHG Logística",
-    cls: "FIIs",
-    clsKey: "fiis" as const,
-    qty: 850,
-    price: 162.34,
-    return: 0.072,
-    risk: 28,
-  },
-  {
-    ticker: "KNRI11",
-    name: "Kinea Renda Imob.",
-    cls: "FIIs",
-    clsKey: "fiis" as const,
-    qty: 420,
-    price: 148.9,
-    return: 0.041,
-    risk: 24,
-  },
-  {
-    ticker: "VOO",
-    name: "Vanguard S&P 500",
-    cls: "Exterior",
-    clsKey: "exterior" as const,
-    qty: 180,
-    price: 521.14,
-    return: 0.241,
-    risk: 38,
-  },
-  {
-    ticker: "QQQM",
-    name: "Invesco Nasdaq",
-    cls: "Exterior",
-    clsKey: "exterior" as const,
-    qty: 220,
-    price: 187.55,
-    return: 0.297,
-    risk: 52,
-  },
-  {
-    ticker: "BTC",
-    name: "Bitcoin",
-    cls: "Cripto",
-    clsKey: "cripto" as const,
-    qty: 0.42,
-    price: 178420,
-    return: 0.412,
-    risk: 88,
-  },
-  {
-    ticker: "ETH",
-    name: "Ethereum",
-    cls: "Cripto",
-    clsKey: "cripto" as const,
-    qty: 6.8,
-    price: 14820,
-    return: 0.286,
-    risk: 84,
-  },
-  {
-    ticker: "TESOURO IPCA+ 2035",
-    name: "Tesouro Direto",
-    cls: "Renda fixa",
-    clsKey: "rf" as const,
-    qty: 1,
-    price: 174634,
-    return: 0.108,
-    risk: 12,
-  },
-];
-
-const TOTAL = ALLOCATION.reduce((s, a) => s + a.value, 0);
+// Patrimônio total = soma das categorias do AssetsPanel
+// (399.382 + 349.267 + 224.529 + 174.634 + 99.570 = 1.247.382)
+const TOTAL = 1247382;
+const ASSET_COUNT = 18;
 
 export default function PortfolioPage() {
   return (
@@ -192,52 +41,26 @@ export default function PortfolioPage() {
         />
         <KpiCard
           label="Ativos sob gestão"
-          value={String(ASSETS.length)}
+          value={String(ASSET_COUNT)}
           hint="5 classes · 4 instituições"
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
         <Section
-          title="Alocação por classe"
-          description="Distribuição atual do patrimônio"
-          className="lg:col-span-2"
+          title="Evolução do Patrimônio"
+          description="Aporte acumulado + ganho de capital, mês a mês"
+          className="lg:col-span-3"
         >
-          <div className="flex flex-col items-center gap-6 sm:flex-row">
-            <Donut data={ALLOCATION} total={TOTAL} />
-            <ul className="flex w-full flex-col gap-3">
-              {ALLOCATION.map((a) => (
-                <li
-                  key={a.key}
-                  className="flex items-center justify-between gap-3 text-sm"
-                >
-                  <span className="flex items-center gap-2">
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ background: a.color }}
-                    />
-                    <span className="text-zinc-700">{a.label}</span>
-                  </span>
-                  <span className="flex items-baseline gap-2">
-                    <span className="font-medium text-ink-900">
-                      {fmtPct(a.pct)}
-                    </span>
-                    <span className="text-xs text-zinc-500">
-                      {fmtBRL(a.value, { compact: true })}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <EvolucaoChart />
         </Section>
 
         <Section
-          title="Risco × retorno"
-          description="Cada ativo plotado por volatilidade e retorno YTD"
-          className="lg:col-span-3"
+          title="Ativos na carteira"
+          description="Distribuição por classe"
+          className="lg:col-span-2"
         >
-          <RiskReturnScatter />
+          <AllocationDonut />
         </Section>
       </div>
 
@@ -245,139 +68,3 @@ export default function PortfolioPage() {
     </div>
   );
 }
-
-function Donut({
-  data,
-  total,
-}: {
-  data: typeof ALLOCATION;
-  total: number;
-}) {
-  const radius = 56;
-  const circumference = 2 * Math.PI * radius;
-  const segments = data.reduce<
-    { key: string; color: string; dash: number; offset: number }[]
-  >((acc, d) => {
-    const dash = (d.value / total) * circumference;
-    const last = acc[acc.length - 1];
-    const offset = last ? last.offset + last.dash : 0;
-    acc.push({ key: d.key, color: d.color, dash, offset });
-    return acc;
-  }, []);
-  return (
-    <div className="relative">
-      <svg viewBox="0 0 140 140" className="h-40 w-40 -rotate-90">
-        <circle
-          cx="70"
-          cy="70"
-          r={radius}
-          fill="none"
-          stroke="#f4f4f5"
-          strokeWidth="14"
-        />
-        {segments.map((s) => (
-          <circle
-            key={s.key}
-            cx="70"
-            cy="70"
-            r={radius}
-            fill="none"
-            stroke={s.color}
-            strokeWidth="14"
-            strokeDasharray={`${s.dash} ${circumference}`}
-            strokeDashoffset={-s.offset}
-            strokeLinecap="butt"
-          />
-        ))}
-      </svg>
-      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[10px] uppercase tracking-wider text-zinc-400">
-          Total
-        </span>
-        <span className="text-base font-semibold text-ink-900">
-          {fmtBRL(total, { compact: true })}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function RiskReturnScatter() {
-  const xToPx = (x: number) => 40 + (x / 100) * 360;
-  const yToPx = (y: number) => 130 - ((y + 0.1) / 0.6) * 110;
-
-  return (
-    <div className="w-full">
-      <svg viewBox="0 0 420 160" className="h-56 w-full">
-        <line
-          x1="40"
-          y1="130"
-          x2="410"
-          y2="130"
-          stroke="#e4e4e7"
-          strokeWidth="1"
-        />
-        <line
-          x1="40"
-          y1="20"
-          x2="40"
-          y2="130"
-          stroke="#e4e4e7"
-          strokeWidth="1"
-        />
-        <line
-          x1="40"
-          y1={yToPx(0)}
-          x2="410"
-          y2={yToPx(0)}
-          stroke="#e4e4e7"
-          strokeWidth="1"
-          strokeDasharray="2 3"
-        />
-
-        {ASSETS.map((a) => {
-          const cx = xToPx(a.risk);
-          const cy = yToPx(a.return);
-          return (
-            <g key={a.ticker}>
-              <circle
-                cx={cx}
-                cy={cy}
-                r={8}
-                fill={CLASS_COLORS[a.clsKey]}
-                fillOpacity="0.85"
-              />
-              <text
-                x={cx}
-                y={cy - 12}
-                fontSize="9"
-                fill="#3f3f46"
-                textAnchor="middle"
-                fontWeight="500"
-              >
-                {a.ticker}
-              </text>
-            </g>
-          );
-        })}
-
-        <text x="40" y="148" fontSize="9" fill="#a1a1aa">
-          Baixo risco
-        </text>
-        <text x="410" y="148" fontSize="9" fill="#a1a1aa" textAnchor="end">
-          Alto risco
-        </text>
-        <text x="36" y="24" fontSize="9" fill="#a1a1aa" textAnchor="end">
-          +50%
-        </text>
-        <text x="36" y={yToPx(0) + 3} fontSize="9" fill="#a1a1aa" textAnchor="end">
-          0%
-        </text>
-        <text x="36" y="133" fontSize="9" fill="#a1a1aa" textAnchor="end">
-          -10%
-        </text>
-      </svg>
-    </div>
-  );
-}
-

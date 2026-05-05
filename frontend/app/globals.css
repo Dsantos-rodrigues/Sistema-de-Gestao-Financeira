@@ -39,3 +39,11 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Hover-tooltip entry: opacity-only fade so it doesn't fight inline transforms
+   (the bar tooltip uses translate(-50%, calc(-100% - 12px)); the donut tooltip
+   is centered by flex). */
+@keyframes tooltip-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

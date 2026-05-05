@@ -1,0 +1,99 @@
+// schema.prisma — define a estrutura do banco de dados
+// Cada "model" vira uma tabela no PostgreSQL
+// Para aplicar as mudanças: npx prisma migrate dev --name nome_da_migration
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+// Tipo da transação financeira
+enum TransactionType {
+  INCOME  // entrada de dinheiro (salário, freelance, etc.)
+  EXPENSE // saída de dinheiro (conta, compra, etc.)
+}
+
+// Tipo de carteira/conta do usuário
+enum WalletType {
+  CHECKING   // conta corrente
+  SAVINGS    // poupança
+  CASH       // dinheiro em espécie
+  INVESTMENT // conta de investimento
+}
+
+// Tipo do ativo financeiro
+enum AssetType {
+  STOCK        // ação (ex: PETR4, VALE3)
+  CRYPTO       // criptomoeda (ex: BTC, ETH)
+  REAL_ESTATE  // imóvel
+  FIXED_INCOME // renda fixa (ex: CDB, Tesouro Direto)
+  FUND         // fundo de investimento
+  OTHER        // outros ativos
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+// Tabela de usuários do sistema
+model User {
+  id           String        @id @default(uuid()) // identificador único (UUID)
+  name         String                             // nome completo do usuário
+  email        String        @unique              // email único por usuário
+  password     String                             // senha armazenada como hash
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]                      // transações do usuário
+  wallets      Wallet[]                           // carteiras do usuário
+  assets       Asset[]                            // ativos do usuário
+}
+
+// Tabela de transações financeiras
+model Transaction {
+  id          String          @id @default(uuid())
+  description String                               // descrição (ex: "Aluguel", "Salário")
+  amount      Decimal         @db.Decimal(10, 2)   // valor com 2 casas decimais
+  type        TransactionType                      // INCOME ou EXPENSE
+  category    String?                              // categoria opcional (ex: "Moradia")
+  date        DateTime                             // data em que a transação ocorreu
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  userId      String                               // dono da transação
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletId    String?                              // carteira vinculada (opcional)
+  wallet      Wallet?         @relation(fields: [walletId], references: [id], onDelete: SetNull)
+                                                   // SetNull: ao deletar a carteira, a transação permanece sem carteira
+}
+
+// Tabela de carteiras/contas do usuário
+// Saldo não é armazenado — é calculado dinamicamente a partir das transações vinculadas
+model Wallet {
+  id           String        @id @default(uuid())
+  name         String                             // nome da carteira (ex: "Conta Nubank", "Espécie")
+  type         WalletType                         // tipo: CHECKING, SAVINGS, CASH ou INVESTMENT
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  userId       String                             // dono da carteira
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]                      // transações vinculadas a esta carteira
+}
+
+// Tabela de ativos financeiros do usuário
+model Asset {
+  id            String    @id @default(uuid())
+  name          String                           // nome do ativo (ex: "Petrobras", "Bitcoin")
+  ticker        String?                          // código do ativo (ex: "PETR4", "BTC") — opcional
+  type          AssetType                        // STOCK, CRYPTO, REAL_ESTATE, FIXED_INCOME, FUND ou OTHER
+  quantity      Decimal   @db.Decimal(18, 8)    // quantidade com 8 casas (alta precisão para cripto)
+  purchasePrice Decimal   @db.Decimal(10, 2)    // preço pago na compra
+  currentPrice  Decimal   @db.Decimal(10, 2)    // preço atual (atualizado manualmente ou via API)
+  purchasedAt   DateTime                         // data da compra do ativo
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  userId        String                           // dono do ativo
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

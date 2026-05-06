@@ -1,0 +1,25 @@
+{
+  "name": "sistema-de-gestao-financeira",
+  "version": "1.0.0",
+  "description": "Um sistema de gestão financeira pessoal. Criado utilizando Next.js, NestJS e FastAPI. Projeto de graduação para a disciplina Programação Avançada para Web",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "server": "npm run start:dev --prefix backend",
+    "install:all": "npm install --prefix backend && npm install --prefix frontend"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dsantos-rodrigues/Sistema-de-Gestao-Financeira.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dsantos-rodrigues/Sistema-de-Gestao-Financeira/issues"
+  },
+  "homepage": "https://github.com/Dsantos-rodrigues/Sistema-de-Gestao-Financeira#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

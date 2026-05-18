@@ -1,0 +1,31 @@
+# Usa Node.js 20 com Alpine Linux
+FROM node:20-alpine
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Instala as dependências nativas necessárias pelo Prisma no Alpine
+RUN apk add --no-cache libc6-compat openssl
+
+# Copia arquivos de dependências primeiro
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instala todas as dependências (incluindo as de desenvolvimento para poder fazer o build)
+RUN npm ci
+
+# Copia o restante do código fonte do backend
+COPY . .
+
+# Gera o Prisma Client e faz o build do NestJS para produção
+RUN npx prisma generate
+RUN npm run build
+
+# Remove as dependências de desenvolvimento para deixar a imagem final leve
+RUN npm prune --production
+
+# O Cloud Run expõe a porta dinamicamente, mas deixamos documentado
+EXPOSE 8080
+
+# Script de inicialização de produção
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]

@@ -17,7 +17,7 @@ async function bootstrap() {
 
   // habilita CORS apenas para o frontend (porta 3001)
   // bloqueia requisições de origens desconhecidas
-  app.enableCors({ origin: 'http://localhost:3001' });
+  app.enableCors();
 
   // ── Configuração global ──────────────────────────────────────────────────────
 
@@ -39,6 +39,6 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document); // Swagger disponível em /docs
   // ────────────────────────────────────────────────────────────────────────────
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();

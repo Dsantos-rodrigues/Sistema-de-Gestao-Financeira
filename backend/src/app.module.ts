@@ -3,6 +3,10 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { CarteirasModule } from './carteiras/carteiras.module';
+import { AtivosModule } from './ativos/ativos.module';
+import { TransacoesModule } from './transacoes/transacoes.module';
+
 
 /**
  * Módulo raiz da aplicação.
@@ -29,6 +33,9 @@ import { UsersModule } from './users/users.module';
 
     AuthModule,
     UsersModule,
+    CarteirasModule,
+    AtivosModule,
+    TransacoesModule,
   ],
 })
 export class AppModule {}

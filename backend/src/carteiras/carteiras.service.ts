@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Carteira } from './carteira.entity';
 import { Transacao } from '../transacoes/transacao.entity';
 import { TipoTransacao } from '../transacoes/transacao.entity';
+import { FiltroAgregacaoDto } from './dto/filtro-agregacao.dto';
+
 
 /**
  * Serviço responsável pelas operações de carteiras e patrimônio.
@@ -99,5 +101,72 @@ export class CarteirasService {
     }, 0);
 
     return { saldo_total };
+  }
+
+  /**
+   * Gera agregações financeiras do usuário por período e categoria.
+   * @param userId - ID do usuário autenticado
+   * @param filtro - Filtros opcionais de período e carteira
+   * @returns Resumo financeiro com totais por tipo e categoria
+   */
+  async gerarAgregacoes(userId: string, filtro: FiltroAgregacaoDto) {
+    // Monta a query base filtrando pelo usuário
+    const query = this.transacoesRepository
+      .createQueryBuilder('transacao')
+      .where('transacao.user_id = :userId', { userId });
+
+    // Aplica filtro de data início se informado
+    if (filtro.data_inicio) {
+      query.andWhere('transacao.data >= :data_inicio', {
+        data_inicio: filtro.data_inicio,
+      });
+    }
+
+    // Aplica filtro de data fim se informado
+    if (filtro.data_fim) {
+      query.andWhere('transacao.data <= :data_fim', {
+        data_fim: filtro.data_fim,
+      });
+    }
+
+    // Aplica filtro de carteira se informado
+    if (filtro.carteira_id) {
+      query.andWhere('transacao.carteira_id = :carteira_id', {
+        carteira_id: filtro.carteira_id,
+      });
+    }
+
+    const transacoes = await query.getMany();
+
+    // Calcula totais de entrada e saída
+    const total_entradas = transacoes
+      .filter((t) => t.tipo === TipoTransacao.ENTRADA)
+      .reduce((acc, t) => acc + Number(t.valor), 0);
+
+    const total_saidas = transacoes
+      .filter((t) => t.tipo === TipoTransacao.SAIDA)
+      .reduce((acc, t) => acc + Number(t.valor), 0);
+
+    // Agrupa por categoria
+    const por_categoria = transacoes.reduce((acc, t) => {
+      const categoria = t.categoria || 'Sem categoria';
+      if (!acc[categoria]) {
+        acc[categoria] = { entradas: 0, saidas: 0 };
+      }
+      if (t.tipo === TipoTransacao.ENTRADA) {
+        acc[categoria].entradas += Number(t.valor);
+      } else {
+        acc[categoria].saidas += Number(t.valor);
+      }
+      return acc;
+    }, {} as Record<string, { entradas: number; saidas: number }>);
+
+    return {
+      total_entradas,
+      total_saidas,
+      saldo_periodo: total_entradas - total_saidas,
+      por_categoria,
+      quantidade_transacoes: transacoes.length,
+    };
   }
 }

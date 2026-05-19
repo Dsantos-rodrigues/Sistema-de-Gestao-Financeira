@@ -6,6 +6,10 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { CarteirasModule } from './carteiras/carteiras.module';
+import { AtivosModule } from './ativos/ativos.module';
+import { TransacoesModule } from './transacoes/transacoes.module';
+
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
@@ -43,6 +47,9 @@ import { WalletsModule } from './wallets/wallets.module';
 
     AuthModule,
     UsersModule,
+    CarteirasModule,
+    AtivosModule,
+    TransacoesModule,
     ConfigModule.forRoot({ isGlobal: true }), // carrega o .env em toda a aplicação
     PrismaModule,        // conexão com o banco — disponível globalmente
     AuthModule,          // /api/auth/register e /api/auth/login

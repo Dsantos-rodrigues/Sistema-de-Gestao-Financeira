@@ -1,7 +1,7 @@
 // lib/api.ts — cliente HTTP centralizado para comunicar com o backend
 // Adiciona automaticamente o token JWT em todas as requisições autenticadas
 
-const BASE_URL = 'http://localhost:3000/api'
+const BASE_URL = 'https://financeiro-backend-864817539307.us-central1.run.app/api';
 
 // lê o token JWT salvo no localStorage
 function getToken(): string | null {
@@ -12,6 +12,12 @@ function getToken(): string | null {
 // salva o token JWT no localStorage após login/registro
 export function saveToken(token: string) {
   localStorage.setItem('token', token)
+
+  document.cookie = [
+    `token=${token}`,
+    'path=/',
+    'SameSite=Lax',
+  ].join('; ')
 }
 
 // remove o token JWT do localStorage ao fazer logout

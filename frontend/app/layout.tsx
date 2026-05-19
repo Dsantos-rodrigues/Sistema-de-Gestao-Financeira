@@ -1,22 +1,34 @@
-// layout.tsx — layout raiz da aplicação Next.js
-// Envolve todas as páginas com fontes e estilos globais
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
 
-import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
-import './globals.css'
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
 
-// fonte principal da aplicação
-const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: 'Sistema de Gestão Financeira',
-  description: 'Gerencie suas finanças, carteiras e investimentos',
-}
+  title: "FinFlow — Gestão Patrimonial Open Finance",
+  description:
+    "Plataforma de gestão patrimonial Open Finance. Análise de portfólio, fluxo de caixa e decisões de investimento em uma interface clara e poderosa.",
+};
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="pt-BR" className={geist.variable}>
-      <body className="min-h-screen bg-gray-50 font-sans">{children}</body>
+    <html
+      lang="pt-BR"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-zinc-100">{children}</body>
     </html>
-  )
+  );
 }

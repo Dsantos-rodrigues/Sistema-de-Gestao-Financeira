@@ -23,7 +23,7 @@ export default function LoginPage() {
       // envia credenciais para o backend e salva o token retornado
       const data = await api.post<{ token: string }>('/auth/login', { email, password })
       saveToken(data.token)
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     } catch (err: unknown) {
       setErro(err instanceof Error ? err.message : 'Erro ao fazer login')
     } finally {

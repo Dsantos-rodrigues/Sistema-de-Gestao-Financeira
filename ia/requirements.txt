@@ -1,0 +1,5 @@
+# Dependências Python do serviço de IA
+# Instalar manualmente: pip install -r requirements.txt
+
+fastapi==0.115.0   # framework web para criar APIs REST em Python (similar ao NestJS)
+uvicorn==0.30.6    # servidor ASGI que executa a aplicação FastAPI (similar ao Express)

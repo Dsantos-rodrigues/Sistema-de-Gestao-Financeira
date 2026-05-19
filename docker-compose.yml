@@ -1,0 +1,69 @@
+# docker-compose.yml — orquestra todos os serviços do projeto em containers
+# Para subir tudo:    docker compose up --build
+# Para parar tudo:    docker compose down
+# Para apagar dados:  docker compose down -v  (remove o volume do banco também)
+
+services:
+
+  # ─── Banco de dados PostgreSQL ────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine  # versão 16, alpine = imagem menor
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}         # usuário do banco (padrão: postgres)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # senha do banco (padrão: postgres)
+      POSTGRES_DB: ${POSTGRES_DB:-financeiro}           # nome do banco criado automaticamente
+    ports:
+      - "5432:5432"  # permite conexão local via DBeaver/pgAdmin
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # persiste os dados entre reinicializações
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s   # verifica a cada 5 segundos
+      timeout: 5s    # aguarda no máximo 5s por resposta
+      retries: 10    # tenta 10 vezes antes de considerar falha
+      start_period: 10s  # aguarda 10s antes de começar a verificar (banco demora para iniciar)
+
+  # ─── API backend em NestJS ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"  # API acessível em http://localhost:3000
+      # Swagger disponível em http://localhost:3000/docs
+    env_file:
+      - .env  # carrega todas as variáveis de ambiente do arquivo .env na raiz
+    depends_on:
+      postgres:
+        condition: service_healthy  # só sobe após o postgres estar saudável
+    volumes:
+      - ./backend/src:/app/src          # hot reload: salvar arquivo reinicia o servidor
+      - ./backend/prisma:/app/prisma    # sincroniza o schema e migrations
+
+  # ─── Interface web em Next.js ─────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"  # Next.js roda na 3000 dentro do container, exposto na 3001
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000  # endereço da API usado pelo browser
+    depends_on:
+      - backend  # garante que o backend já está de pé antes do frontend subir
+    volumes:
+      - ./frontend/app:/app/app  # hot reload das páginas Next.js
+
+  # ─── Serviço de inteligência artificial em FastAPI ────────────────────────────
+  ia:
+    build:
+      context: ./ia
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"  # API de IA acessível em http://localhost:8000
+    volumes:
+      - ./ia:/app  # hot reload: qualquer alteração no .py reflete imediatamente
+
+# ─── Volumes nomeados ─────────────────────────────────────────────────────────
+volumes:
+  postgres_data:  # gerenciado pelo Docker — persiste os dados do PostgreSQL

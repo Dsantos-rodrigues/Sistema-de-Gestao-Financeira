@@ -1,20 +1,12 @@
+// users.module.ts — configura o escopo do módulo de usuários
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user.entity';
 import { UsersService } from './users.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
-/**
- * Módulo responsável pelo gerenciamento de usuários.
- * Registra a entity User no TypeORM e disponibiliza
- * o UsersService para outros módulos.
- */
 @Module({
-  imports: [
-    // Registra a entity User para uso do TypeORM neste módulo
-    TypeOrmModule.forFeature([User]),
-  ],
+  imports: [PrismaModule], // Fornece o PrismaService para o seu UsersService
+  controllers: [],         // Deixamos vazio já que o controller de usuários não existe
   providers: [UsersService],
-  // Exporta o UsersService para que o AuthModule possa utilizá-lo
-  exports: [UsersService], // sem isso aqui o AuthModule não enxerga o serviço
+  exports: [UsersService], // Essencial para o AuthModule conseguir importar o UsersService!
 })
 export class UsersModule {}

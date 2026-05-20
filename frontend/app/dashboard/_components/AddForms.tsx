@@ -62,13 +62,76 @@ export function AssetModal({ onClose }: { onClose: () => void }) {
   const [cls, setCls] = useState<AssetClass>("acoes");
   const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+
+    try {
+      const form = new FormData(e.currentTarget);
+
+      const typeMap = {
+        acoes: "STOCK",
+        fii: "FUND",
+        etf: "FUND",
+        cripto: "CRYPTO",
+        rf: "FIXED_INCOME",
+      } as const;
+
+      const categoryMap = {
+        acoes: "Ações BR",
+        fii: "FII",
+        etf: "ETF Exterior",
+        cripto: "Cripto",
+        rf: "Renda fixa",
+      } as const;
+
+      const qty = String(form.get("qty") || "0");
+      const avgPrice = String(form.get("avgPrice") || "0");
+
+      const payload = {
+        name: String(form.get("name") || ""),
+        ticker: String(form.get("ticker") || "").toUpperCase(),
+        type: typeMap[cls],
+        category: categoryMap[cls],
+        quantity: qty,
+        purchasePrice: avgPrice,
+        currentPrice: avgPrice,
+        purchasedAt: new Date(
+          String(form.get("date") || "")
+        ).toISOString(),
+      };
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
+      }
+
+      const res = await fetch(
+        "https://financeiro-backend-864817539307.us-central1.run.app/api/assets",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!res.ok) {
+        const error = await res.text();
+        console.error("API ERROR:", res.status, error);
+        throw new Error(`Erro ${res.status}`);
+      }
+
       onClose();
-    }, 400);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

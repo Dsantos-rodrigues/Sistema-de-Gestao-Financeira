@@ -1,7 +1,7 @@
 // main.ts — ponto de entrada da aplicação NestJS
-
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
@@ -9,19 +9,31 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // ── Segurança ────────────────────────────────────────────────────────────────
+  
+  // Em produção no Cloud Run, desativamos o CSP do helmet temporariamente se for usar o Swagger (/docs),
+  // pois o helmet bloqueia os scripts inline que o Swagger usa para renderizar a página.
+  app.use(
+    helmet({
+      contentSecurityPolicy: process.env.NODE_ENV === 'production' ? false : undefined,
+    }),
+  );
 
-  // helmet adiciona headers HTTP de segurança em todas as respostas:
-  // X-Content-Type-Options, X-Frame-Options, Strict-Transport-Security, etc.
-  // impede ataques como clickjacking, sniffing de MIME type e outros
-  app.use(helmet());
-
-  // habilita CORS apenas para o frontend (porta 3001)
-  // bloqueia requisições de origens desconhecidas
-  app.enableCors({ origin: 'http://localhost:3001' });
+  // Habilita CORS flexível para produção, aceitando tanto o localhost quanto o futuro domínio da nuvem
+  app.enableCors({
+    origin: true, // Em produção, true permite que a API responda às requisições do front adequadamente
+    credentials: true,
+  });
 
   // ── Configuração global ──────────────────────────────────────────────────────
+  
+  // Garante que as validações dos seus DTOs (como o LoginDto que arrumamos) funcionem globalmente!
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Remove campos que não estão no DTO
+      transform: true, // Converte tipos automaticamente
+    }),
+  );
 
-  // prefixo global para todas as rotas da API (ex: /api/auth/login)
   app.setGlobalPrefix('api');
 
   // ── Swagger ──────────────────────────────────────────────────────────────────
@@ -36,9 +48,14 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document); // Swagger disponível em /docs
-  // ────────────────────────────────────────────────────────────────────────────
+  SwaggerModule.setup('docs', app, document);
 
-  await app.listen(process.env.PORT ?? 3000);
+  // ── Inicialização do Servidor ───────────────────────────────────────────────
+  const port = process.env.PORT || 3000;
+  
+  // OBRIGATÓRIO PARA O DOCKER/CLOUD RUN: Escutar em '0.0.0.0'
+  await app.listen(port, '0.0.0.0');
+  
+  console.log(`Application is running on: http://0.0.0.0:${port}`);
 }
 bootstrap();

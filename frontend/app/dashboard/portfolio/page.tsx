@@ -1,14 +1,39 @@
+'use client'
+
+import { useEffect, useState } from "react";
+import { getPatrimonio } from "../_services/patrimonio";
 import { AllocationDonut } from "../_components/AllocationDonut";
 import { AssetsPanel } from "../_components/AssetsPanel";
 import { EvolucaoChart } from "../_components/EvolucaoChart";
 import { Chip, KpiCard, PageHeader, Section, fmtBRL } from "../_components/ui";
 
-// Patrimônio total = soma das categorias do AssetsPanel
-// (399.382 + 349.267 + 224.529 + 174.634 + 99.570 = 1.247.382)
-const TOTAL = 1247382;
-const ASSET_COUNT = 18;
-
 export default function PortfolioPage() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const response = await getPatrimonio();
+        setData(response);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        Carregando...
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -25,23 +50,23 @@ export default function PortfolioPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Patrimônio total"
-          value={fmtBRL(TOTAL)}
+          value={fmtBRL(data?.patrimonioTotal ?? 0)}
           delta={{ value: "+2,4% mês", positive: true }}
         />
         <KpiCard
           label="Rentabilidade YTD"
-          value="+18,30%"
+          value={fmtBRL(data?.rentabilidadeYTD ?? 0)}
           delta={{ value: "vs CDI 11,2%", positive: true }}
           hint="Ibovespa: +14,1%"
         />
         <KpiCard
           label="Aporte mensal"
-          value={fmtBRL(12000)}
+          value={fmtBRL(data?.aporteMensal ?? 0)}
           hint="Próximo: 05 jun"
         />
         <KpiCard
           label="Ativos sob gestão"
-          value={String(ASSET_COUNT)}
+          value={String(data?.ativos?.quantidade ?? 0)}
           hint="5 classes · 4 instituições"
         />
       </div>
@@ -52,7 +77,7 @@ export default function PortfolioPage() {
           description="Aporte acumulado + ganho de capital, mês a mês"
           className="lg:col-span-3"
         >
-          <EvolucaoChart />
+          <EvolucaoChart data={data} />
         </Section>
 
         <Section
@@ -60,11 +85,11 @@ export default function PortfolioPage() {
           description="Distribuição por classe"
           className="lg:col-span-2"
         >
-          <AllocationDonut />
+          <AllocationDonut data={data} />
         </Section>
       </div>
 
-      <AssetsPanel />
+      <AssetsPanel data={data} />
     </div>
   );
 }

@@ -5,23 +5,6 @@ import { fmtBRL } from "./ui";
 
 type Point = { month: string; aplicado: number; ganho: number };
 
-// 12 meses encerrando em 05/26. Final: aplicado 1.094.000 + ganho 153.382 = 1.247.382
-// (que bate com a soma das categorias no AssetsPanel)
-const DATA: Point[] = [
-  { month: "06/25", aplicado: 962000, ganho: 38500 },
-  { month: "07/25", aplicado: 974000, ganho: 51200 },
-  { month: "08/25", aplicado: 986000, ganho: 49100 },
-  { month: "09/25", aplicado: 998000, ganho: 67400 },
-  { month: "10/25", aplicado: 1010000, ganho: 78900 },
-  { month: "11/25", aplicado: 1022000, ganho: 88300 },
-  { month: "12/25", aplicado: 1034000, ganho: 102500 },
-  { month: "01/26", aplicado: 1046000, ganho: 115800 },
-  { month: "02/26", aplicado: 1058000, ganho: 119200 },
-  { month: "03/26", aplicado: 1070000, ganho: 131400 },
-  { month: "04/26", aplicado: 1082000, ganho: 138900 },
-  { month: "05/26", aplicado: 1094000, ganho: 153382 },
-];
-
 const W = 720;
 const H = 300;
 const PAD = { l: 56, r: 16, t: 16, b: 36 };
@@ -32,20 +15,25 @@ const COLOR_GANHO = "#6EE7B7";
 const COLOR_GANHO_HOVER = "#34D399";
 const COLOR_PATRIMONIO_DOT = "#7c3aed";
 
-export function EvolucaoChart() {
+export function EvolucaoChart({ data }: { data: any }) {
+  const history = data?.history ?? [];
+
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
   const innerW = W - PAD.l - PAD.r;
   const innerH = H - PAD.t - PAD.b;
-  const max = Math.max(...DATA.map((d) => d.aplicado + d.ganho));
+  const max = Math.max(
+    ...history.map((d: any) => d.aplicado + d.ganho),
+    0
+  );
   const yMax = Math.ceil(max / 200000) * 200000;
   const yToPx = (v: number) => PAD.t + innerH - (v / yMax) * innerH;
-  const sliceW = innerW / DATA.length;
+  const sliceW = innerW / (history.length || 1);
   const barW = sliceW * 0.55;
 
   const yTicks = [0, 0.25, 0.5, 0.75, 1].map((p) => yMax * p);
 
-  const hovered = hoverIdx !== null ? DATA[hoverIdx] : null;
+  const hovered = hoverIdx !== null ? history[hoverIdx] ?? null : null;
   const hoveredX =
     hoverIdx !== null
       ? PAD.l + hoverIdx * sliceW + sliceW / 2
@@ -61,91 +49,100 @@ export function EvolucaoChart() {
       </div>
 
       <div className="relative">
-        <svg viewBox={`0 0 ${W} ${H}`} className="h-[300px] w-full">
-          {yTicks.map((t, i) => (
-            <g key={i}>
-              <line
-                x1={PAD.l}
-                x2={W - PAD.r}
-                y1={yToPx(t)}
-                y2={yToPx(t)}
-                stroke="#f4f4f5"
-                strokeWidth="1"
-                strokeDasharray={i === 0 ? undefined : "3 3"}
+        {history.length === 0 ? (
+          <div className="flex h-[300px] items-center justify-center rounded-2xl border border-zinc-200 text-sm text-zinc-500">
+            Nenhum histórico disponível
+          </div>
+        ) : (
+          <>
+            <svg viewBox={`0 0 ${W} ${H}`} className="h-[300px] w-full">
+              {yTicks.map((t, i) => (
+                <g key={i}>
+                  <line
+                    x1={PAD.l}
+                    x2={W - PAD.r}
+                    y1={yToPx(t)}
+                    y2={yToPx(t)}
+                    stroke="#f4f4f5"
+                    strokeWidth="1"
+                    strokeDasharray={i === 0 ? undefined : "3 3"}
+                  />
+                  <text
+                    x={PAD.l - 8}
+                    y={yToPx(t) + 3}
+                    fontSize="10"
+                    fill="#a1a1aa"
+                    textAnchor="end"
+                  >
+                    {fmtCompact(t)}
+                  </text>
+                </g>
+              ))}
+
+              {history.map((d: any, i: number) => {
+                const x = PAD.l + i * sliceW + (sliceW - barW) / 2;
+                const aplicadoH = (d.aplicado / yMax) * innerH;
+                const ganhoH = (d.ganho / yMax) * innerH;
+                const yAplicado = PAD.t + innerH - aplicadoH;
+                const yGanho = yAplicado - ganhoH;
+                const isHover = hoverIdx === i;
+
+                return (
+                  <g
+                    key={i}
+                    onMouseEnter={() => setHoverIdx(i)}
+                    onMouseLeave={() => setHoverIdx(null)}
+                  >
+                    <rect
+                      x={PAD.l + i * sliceW}
+                      y={PAD.t}
+                      width={sliceW}
+                      height={innerH + 8}
+                      fill="transparent"
+                      style={{ cursor: "pointer" }}
+                    />
+
+                    <rect
+                      x={x}
+                      y={yAplicado}
+                      width={barW}
+                      height={aplicadoH}
+                      fill={isHover ? COLOR_APLICADO_HOVER : COLOR_APLICADO}
+                      rx="3"
+                    />
+
+                    <rect
+                      x={x}
+                      y={yGanho}
+                      width={barW}
+                      height={ganhoH}
+                      fill={isHover ? COLOR_GANHO_HOVER : COLOR_GANHO}
+                      rx="3"
+                    />
+
+                    <text
+                      x={x + barW / 2}
+                      y={H - 12}
+                      fontSize="10"
+                      fill={isHover ? "#18181b" : "#a1a1aa"}
+                      textAnchor="middle"
+                      fontWeight={isHover ? 600 : 400}
+                    >
+                      {d.month}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+
+            {hovered && (
+              <BarTooltip
+                data={hovered}
+                xPct={(hoveredX / W) * 100}
+                yPct={(hoveredY / H) * 100}
               />
-              <text
-                x={PAD.l - 8}
-                y={yToPx(t) + 3}
-                fontSize="10"
-                fill="#a1a1aa"
-                textAnchor="end"
-              >
-                {fmtCompact(t)}
-              </text>
-            </g>
-          ))}
-
-          {DATA.map((d, i) => {
-            const x = PAD.l + i * sliceW + (sliceW - barW) / 2;
-            const aplicadoH = (d.aplicado / yMax) * innerH;
-            const ganhoH = (d.ganho / yMax) * innerH;
-            const yAplicado = PAD.t + innerH - aplicadoH;
-            const yGanho = yAplicado - ganhoH;
-            const isHover = hoverIdx === i;
-            return (
-              <g
-                key={i}
-                onMouseEnter={() => setHoverIdx(i)}
-                onMouseLeave={() => setHoverIdx(null)}
-              >
-                <rect
-                  x={PAD.l + i * sliceW}
-                  y={PAD.t}
-                  width={sliceW}
-                  height={innerH + 8}
-                  fill="transparent"
-                  style={{ cursor: "pointer" }}
-                />
-                <rect
-                  x={x}
-                  y={yAplicado}
-                  width={barW}
-                  height={aplicadoH}
-                  fill={isHover ? COLOR_APLICADO_HOVER : COLOR_APLICADO}
-                  rx="3"
-                  style={{ transition: "fill 150ms ease-out" }}
-                />
-                <rect
-                  x={x}
-                  y={yGanho}
-                  width={barW}
-                  height={ganhoH}
-                  fill={isHover ? COLOR_GANHO_HOVER : COLOR_GANHO}
-                  rx="3"
-                  style={{ transition: "fill 150ms ease-out" }}
-                />
-                <text
-                  x={x + barW / 2}
-                  y={H - 12}
-                  fontSize="10"
-                  fill={isHover ? "#18181b" : "#a1a1aa"}
-                  textAnchor="middle"
-                  fontWeight={isHover ? 600 : 400}
-                  style={{ transition: "fill 150ms ease-out" }}
-                >
-                  {d.month}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-
-        {hovered && (
-          <BarTooltip
-            data={hovered}
-            xPct={(hoveredX / W) * 100}
-            yPct={(hoveredY / H) * 100}
-          />
+            )}
+          </>
         )}
       </div>
 

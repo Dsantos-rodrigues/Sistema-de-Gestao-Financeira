@@ -34,6 +34,12 @@ export class CreateAssetDto {
   @IsNotEmpty({ message: 'Tipo é obrigatório' })
   type: AssetType;
 
+  @ApiProperty({ example: 'Ações BR', description: 'Categoria do ativo, associada à classe' })
+  @IsString()
+  @IsNotEmpty({ message: 'Categoria é obrigatória' })
+  @MaxLength(100, { message: 'Categoria deve ter no máximo 100 caracteres' })
+  category: string;
+
   @ApiProperty({ example: '10', description: 'Quantidade de unidades do ativo' })
   @IsDecimal({}, { message: 'Quantidade deve ser um número decimal válido' })
   @IsNotEmpty({ message: 'Quantidade é obrigatória' })

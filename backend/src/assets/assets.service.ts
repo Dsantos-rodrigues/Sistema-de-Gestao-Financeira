@@ -16,6 +16,7 @@ export class AssetsService {
         name: dto.name,
         ticker: dto.ticker,
         type: dto.type,
+        category: dto.category,
         quantity: dto.quantity,
         purchasePrice: dto.purchasePrice,
         currentPrice: dto.currentPrice,
@@ -48,6 +49,7 @@ export class AssetsService {
       where: { id },
       data: {
         ...dto,
+        ...(dto.category !== undefined && { category: dto.category }),
         // converte purchasedAt para Date apenas se foi enviado no body
         ...(dto.purchasedAt && { purchasedAt: new Date(dto.purchasedAt) }),
       },

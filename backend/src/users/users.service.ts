@@ -1,51 +1,45 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+// users.service.ts — gerencia a criação e busca de usuários no Prisma
+import { Injectable, ConflictException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { User } from './user.entity';
 
-/**
- * Serviço responsável pelas operações de usuário.
- * Gerencia criação e busca de usuários no banco de dados.
- */
 @Injectable()
 export class UsersService {
-  constructor(
-    // Injeta o repositório do TypeORM para a entity User
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Cria um novo usuário com a senha criptografada.
-   * @param nome - Nome completo do usuário
-   * @param email - Email único do usuário
-   * @param senha - Senha em texto puro (será criptografada)
-   * @returns O usuário criado sem a senha_hash
    */
-  async criar(nome: string, email: string, senha: string): Promise<Omit<User, 'senha_hash'>> {
-    // Gera o hash da senha com custo 10 (recomendado para produção)
-    const senha_hash = await bcrypt.hash(senha, 10);
+  async criar(name: string, email: string, password: string) {
+    // Verifica se o e-mail já está cadastrado para evitar duplicidade
+    const usuarioExiste = await this.buscarPorEmail(email);
+    if (usuarioExiste) {
+      throw new ConflictException('Este e-mail já está cadastrado.');
+    }
 
-    const usuario = this.usersRepository.create({
-      nome,
-      email,
-      senha_hash,
+    // Gera o hash seguro da senha
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Cria o usuário usando o client do Prisma (tabela mapeada como 'user')
+    const usuario = await this.prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      },
     });
 
-    const salvo = await this.usersRepository.save(usuario);
-
-    // Remove a senha_hash antes de retornar para não expor dados sensíveis
-    const { senha_hash: _, ...resultado } = salvo;
+    // Remove o password do objeto antes de retornar para proteger o dado sensível
+    const { password: _, ...resultado } = usuario;
     return resultado;
   }
 
   /**
-   * Busca um usuário pelo email.
-   * @param email - Email do usuário a ser buscado
-   * @returns O usuário encontrado ou null
+   * Busca um usuário pelo email (usado no login e validações).
    */
-  async buscarPorEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } });
+  async buscarPorEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
   }
 }

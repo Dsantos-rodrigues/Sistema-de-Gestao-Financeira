@@ -10,7 +10,7 @@ export function middleware(request: NextRequest) {
     request.nextUrl.pathname === '/register'
 
   if (!token && !isPublicPage) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   if (token && isPublicPage) {

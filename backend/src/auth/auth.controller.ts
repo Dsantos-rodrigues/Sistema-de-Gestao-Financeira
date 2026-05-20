@@ -1,58 +1,19 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
-import { CadastroDto } from './dto/cadastro.dto';
-
-/**
- * Controller responsável pelas rotas de autenticação.
- * Expõe os endpoints de registro e login.
- */
-@Controller('auth')
-export class AuthController {
-  constructor(
-    // Injeta o serviço de autenticação
-    private authService: AuthService,
-  ) {}
-
-  /**
-   * Autentica um usuário existente.
-   * POST /auth/login
-   * @param dados - DTO com email e senha
-   * @returns Token JWT e dados do usuário
-   */
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  async login(@Body() dados: LoginDto) {
-    return this.authService.login(dados);
-  }
-
-  /**
-   * Registra um novo usuário e já retorna o token JWT.
-   * POST /auth/cadastro
-   * @param dados - DTO com nome, email e senha
-   * @returns Token JWT e dados do usuário criado
-   */
-  @Post('cadastro')
-  async cadastrar(@Body() dados: CadastroDto) {
-    return this.authService.cadastrar(dados);
-  }
-}
-// auth.controller.ts — rotas HTTP de autenticação
-// @Public() libera as rotas do guard global de JWT
-
-import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
-@ApiTags('Autenticação') // agrupa as rotas sob a tag "Autenticação" no Swagger
+@ApiTags('Autenticação') // Agrupa as rotas sob a tag "Autenticação" no Swagger
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // POST /api/auth/register — cria um novo usuário e retorna token JWT
+  /**
+   * Registra um novo usuário e retorna o token JWT.
+   * POST /auth/register
+   */
   @Public()
   @Post('register')
   @UsePipes(new ValidationPipe())
@@ -61,18 +22,19 @@ export class AuthController {
     status: 201,
     description: 'Usuário criado com sucesso. Retorna dados do usuário e token JWT.',
   })
-  @ApiResponse({
-    status: 400,
-    description: 'Dados inválidos (campos faltando ou formato incorreto).',
-  })
+  @ApiResponse({ status: 400, description: 'Dados inválidos.' })
   @ApiResponse({ status: 409, description: 'Email já cadastrado.' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
-  // POST /api/auth/login — autentica o usuário e retorna token JWT
+  /**
+   * Autentica um usuário existente.
+   * POST /auth/login
+   */
   @Public()
   @Post('login')
+  @HttpCode(HttpStatus.OK) // Garante que o retorno seja 200 OK em vez de 201 Created
   @UsePipes(new ValidationPipe())
   @ApiOperation({ summary: 'Fazer login' })
   @ApiResponse({

@@ -1,101 +1,7 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import * as bcrypt from 'bcryptjs';
-import { LoginDto } from './dto/login.dto';
-import { CadastroDto } from './dto/cadastro.dto';
-
-/**
- * Serviço responsável pela autenticação de usuários.
- * Gerencia registro, login e geração de tokens JWT.
- */
-@Injectable()
-export class AuthService {
-  constructor(
-    // Injeta o serviço de usuários para operações no banco
-    private usersService: UsersService,
-    // Injeta o serviço JWT para geração e validação de tokens
-    private jwtService: JwtService,
-  ) {}
-
-  /**
-   * Autentica um usuário e retorna o token JWT.
-   * @param dados - DTO com email e senha do usuário
-   * @returns Token JWT e dados básicos do usuário
-   * @throws UnauthorizedException se email ou senha estiverem incorretos
-   */
-  async login(dados: LoginDto) {
-    // Tenta encontrar o usuário pelo email informado
-    const usuario = await this.usersService.buscarPorEmail(dados.email);
-
-    // Mensagem genérica de propósito — não revela se o email existe ou não
-    if (!usuario) {
-      throw new UnauthorizedException('E-mail ou senha incorretos.');
-    }
-
-    // Compara a senha digitada com o hash salvo no banco
-    // o bcrypt faz essa comparação sem precisar descriptografar
-    const senhaCorreta = await bcrypt.compare(dados.senha, usuario.senha_hash);
-
-    if (!senhaCorreta) {
-      // Mesma mensagem genérica para não revelar qual campo está errado
-      throw new UnauthorizedException('E-mail ou senha incorretos.');
-    }
-
-    // Monta o payload do token — não incluir dados sensíveis aqui
-    // pois o payload pode ser decodificado por qualquer um com o token
-    const payload = {
-      sub: usuario.id,     // sub é o padrão JWT para identificar o dono do token
-      email: usuario.email,
-      nome: usuario.nome,
-    };
-
-    return {
-      accessToken: this.jwtService.sign(payload),
-      usuario: {
-        id: usuario.id,
-        nome: usuario.nome,
-        email: usuario.email,
-      },
-    };
-  }
-
-  /**
-   * Registra um novo usuário e retorna o token JWT.
-   * @param dados - DTO com nome, email e senha
-   * @returns Token JWT e dados básicos do usuário criado
-   * @throws ConflictException se o email já estiver cadastrado
-   */
-  async cadastrar(dados: CadastroDto) {
-    // Verifica se já existe uma conta com esse email
-    const jaExiste = await this.usersService.buscarPorEmail(dados.email);
-    if (jaExiste) {
-      throw new ConflictException('Já existe uma conta com esse e-mail.');
-    }
-
-    // Criptografa a senha antes de salvar no banco
-    const senhaHash = await bcrypt.hash(dados.senha, 10);
-    const usuario = await this.usersService.criar(dados.nome, dados.email, senhaHash);
-
-    // Já gera o token para o usuário não precisar fazer login após o cadastro
-    const payload = { sub: usuario.id, email: usuario.email, nome: usuario.nome };
-
-    return {
-      accessToken: this.jwtService.sign(payload),
-      usuario: {
-        id: usuario.id,
-        nome: usuario.nome,
-        email: usuario.email,
-      },
-    };
-  }
-}
 // auth.service.ts — contém a lógica de negócio de registro e login
-// Usa o PrismaService para acessar o banco e o JwtService para gerar tokens
-
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -103,25 +9,28 @@ import { RegisterDto } from './dto/register.dto';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService, // acesso ao banco de dados
-    private readonly jwtService: JwtService, // geração e validação de tokens JWT
+    private readonly prisma: PrismaService, // Acesso direto ao banco de dados via Prisma
+    private readonly jwtService: JwtService, // Geração e validação de tokens JWT
   ) {}
 
-  // cadastra um novo usuário no sistema
+  /**
+   * Cadastra um novo usuário no sistema.
+   * @param dto - Dados de registro (name, email, password)
+   */
   async register(dto: RegisterDto) {
-    // verifica se já existe um usuário com esse email
+    // Verifica se já existe um usuário com esse email
     const exists = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
+    
     if (exists) {
       throw new ConflictException('Email já cadastrado');
     }
 
-    // gera o hash da senha — nunca salvamos a senha em texto puro
-    // o número 10 é o "salt rounds" — quanto maior, mais seguro e mais lento
+    // Gera o hash da senha de forma segura antes de salvar
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // cria o usuário no banco com a senha hasheada
+    // Cria o usuário no banco com a senha hasheada
     const user = await this.prisma.user.create({
       data: {
         name: dto.name,
@@ -130,45 +39,58 @@ export class AuthService {
       },
     });
 
-    // gera o token JWT com o id e email do usuário no payload
+    // Gera o token JWT com o id e email do usuário no payload
     const token = this.generateToken(user.id, user.email);
 
-    // retorna os dados do usuário (sem a senha) e o token
+    // Retorna os dados do usuário estruturados e o token
     return {
-      user: { id: user.id, name: user.name, email: user.email },
       token,
+      usuario: {
+        id: user.id,
+        nome: user.name,
+        email: user.email,
+      },
     };
   }
 
-  // autentica um usuário existente e retorna um token JWT
+  /**
+   * Autentica um usuário existente e retorna um token JWT.
+   * @param dto - Dados de login (email, password)
+   */
   async login(dto: LoginDto) {
-    // busca o usuário pelo email
+    // Busca o usuário pelo email
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    // retorna erro genérico para não revelar se o email existe ou não
+    // Retorna erro genérico para segurança de dados
     if (!user) {
-      throw new UnauthorizedException('Credenciais inválidas');
+      throw new UnauthorizedException('E-mail ou senha incorretos.');
     }
 
-    // compara a senha enviada com o hash salvo no banco
+    // Compara a senha enviada com o hash salvo no banco
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatch) {
-      throw new UnauthorizedException('Credenciais inválidas');
+      throw new UnauthorizedException('E-mail ou senha incorretos.');
     }
 
-    // gera o token JWT
+    // Gera o token JWT
     const token = this.generateToken(user.id, user.email);
 
-    // retorna os dados do usuário (sem a senha) e o token
+    // Retorna mapeado para o formato esperado pelo frontend
     return {
-      user: { id: user.id, name: user.name, email: user.email },
-      token,
+      accessToken: token,
+      usuario: {
+        id: user.id,
+        nome: user.name,
+        email: user.email,
+      },
     };
   }
 
-  // método privado que gera o token JWT com o payload do usuário
+  /**
+   * Método interno para assinar o token JWT.
+   */
   private generateToken(userId: string, email: string): string {
     return this.jwtService.sign({ sub: userId, email });
   }

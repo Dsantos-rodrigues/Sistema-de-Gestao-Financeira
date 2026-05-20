@@ -88,6 +88,7 @@ model Asset {
   name          String                           // nome do ativo (ex: "Petrobras", "Bitcoin")
   ticker        String?                          // código do ativo (ex: "PETR4", "BTC") — opcional
   type          AssetType                        // STOCK, CRYPTO, REAL_ESTATE, FIXED_INCOME, FUND ou OTHER
+  category      String?                          // categoria associada à classe do ativo
   quantity      Decimal   @db.Decimal(18, 8)    // quantidade com 8 casas (alta precisão para cripto)
   purchasePrice Decimal   @db.Decimal(10, 2)    // preço pago na compra
   currentPrice  Decimal   @db.Decimal(10, 2)    // preço atual (atualizado manualmente ou via API)

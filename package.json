@@ -1,14 +1,10 @@
 {
-  "dependencies": {
-    "@nestjs/config": "^4.0.4",
-    "@nestjs/passport": "^11.0.5",
-    "@nestjs/typeorm": "^11.0.1",
-    "passport": "^0.7.0",
-    "passport-jwt": "^4.0.1",
-    "pg": "^8.20.0",
-    "typeorm": "^0.3.28"
-  },
-  "devDependencies": {
-    "@types/passport-jwt": "^4.0.1"
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build"
   }
 }

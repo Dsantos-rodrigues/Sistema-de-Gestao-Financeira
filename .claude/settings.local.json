@@ -2,7 +2,27 @@
   "permissions": {
     "allow": [
       "Bash(npm install *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Anderson\\\\Documents\\\\Sistema-de-Gestao-Financeira\\\\backend\\\\src\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(find \"c:\\\\Users\\\\Android\\\\Documents\\\\Sistema-de-Gestao-Financeira\" -type f -name \"*.ts\" 2>/dev/null | head -20)",
+      "Read(//c/Users/Android/Documents/Sistema-de-Gestao-Financeira/**)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000,3001 -State Listen -ErrorAction SilentlyContinue | Select-Object LocalPort, OwningProcess | ForEach-Object { $proc = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue; [PSCustomObject]@{ Port=$_.LocalPort; PID=$_.OwningProcess; Name=$proc.Name } })",
+      "Bash(npm run *)",
+      "Bash(echo \"Backend iniciando com PID $!\")",
+      "Bash(sleep 8 && tail -30 /tmp/backend.log)",
+      "Read(//tmp/**)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object LocalPort, OwningProcess | ForEach-Object { $proc = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue; [PSCustomObject]@{ Port=$_.LocalPort; PID=$_.OwningProcess; Name=$proc.Name; Cmd=$proc.MainModule.FileName } })",
+      "Bash(netstat -ano)",
+      "Bash(taskkill /PID 4744 /F)",
+      "PowerShell(Stop-Process -Id 4744 -Force)",
+      "Bash(echo \"Backend PID: $!\")",
+      "Bash(echo \"Frontend PID: $!\")",
+      "Bash(psql \"postgresql://postgres:root@localhost:5432/financeiro\" -c 'TRUNCATE TABLE \"Transaction\", \"Asset\", \"Wallet\", \"User\" CASCADE;')",
+      "PowerShell(Stop-Process -Id 8892 -Force)",
+      "PowerShell(Stop-Process -Id 26272 -Force)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/api/auth/login -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"test@test.com\",\"password\":\"test\"}')",
+      "Bash(node -e ' *)"
     ]
   }
 }

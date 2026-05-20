@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 
 export const inputCls =
-  "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 transition-colors focus:border-ink-900 focus:outline-none focus:ring-4 focus:ring-zinc-900/5";
+  "w-full rounded-lg border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-zinc-50 placeholder:text-zinc-500 transition-colors focus:border-gold-400/50 focus:outline-none focus:ring-4 focus:ring-gold-400/10";
 
 export function Field({
   label,
@@ -20,7 +20,7 @@ export function Field({
 }) {
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <label className="text-xs font-medium text-zinc-700">
+      <label className="text-xs font-medium text-zinc-300">
         {label}
         {required && <span className="ml-0.5 text-rose-500">*</span>}
       </label>
@@ -78,7 +78,7 @@ export function SegmentedControl<T extends string>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className="grid grid-flow-col auto-cols-fr gap-0.5 rounded-lg border border-zinc-200 bg-zinc-50 p-0.5"
+      className="grid grid-flow-col auto-cols-fr gap-0.5 rounded-lg border border-white/10 bg-zinc-900 p-0.5"
     >
       {options.map((o) => {
         const active = value === o.value;
@@ -91,8 +91,8 @@ export function SegmentedControl<T extends string>({
             onClick={() => onChange(o.value)}
             className={`rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
               active
-                ? "bg-white text-ink-900 ring-1 ring-zinc-200/80"
-                : "text-zinc-500 hover:text-zinc-900"
+                ? "bg-zinc-700 text-white ring-1 ring-white/10"
+                : "text-zinc-500 hover:text-zinc-200"
             }`}
           >
             {o.label}
@@ -171,7 +171,7 @@ export function GhostButton({
   return (
     <button
       {...props}
-      className={`inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-300 hover:bg-zinc-50 ${
+      className={`inline-flex h-9 items-center justify-center rounded-lg border border-white/10 bg-zinc-700 px-4 text-sm font-medium text-zinc-200 transition-colors hover:border-white/20 hover:bg-zinc-600 ${
         props.className ?? ""
       }`}
     >

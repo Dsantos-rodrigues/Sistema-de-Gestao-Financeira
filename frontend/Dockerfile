@@ -22,4 +22,4 @@ COPY . .
 EXPOSE 3000
 
 # Comando executado quando o container sobe — modo dev com hot reload
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev:docker"]

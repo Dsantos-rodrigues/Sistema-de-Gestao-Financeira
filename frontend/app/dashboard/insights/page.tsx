@@ -1,63 +1,15 @@
 import { Chip, PageHeader, Section } from "../_components/ui";
 
-const RECOMMENDATIONS = [
-  {
-    title: "Concentração em ações brasileiras acima da meta",
-    detail:
-      "Sua exposição a ações BR está em 32%, contra os 25% definidos no plano de alocação. Considere realocar parte da posição para Exterior ou Renda fixa de longo prazo.",
-    confidence: 87,
-    impact: "alto",
-    action: "Rebalancear",
-    tone: "warning",
-  },
-  {
-    title: "HGLG11 com sentimento de mercado deteriorando",
-    detail:
-      "Análise de 4.2k notícias e 18k posts dos últimos 30 dias indica viés negativo (−0,42). O fundo apresenta risco de revisão de dividendo.",
-    confidence: 72,
-    impact: "médio",
-    action: "Revisar posição",
-    tone: "warning",
-  },
-  {
-    title: "Janela de aporte favorável em cripto",
-    detail:
-      "BTC corrigiu 4,1% na semana com volume estável e RSI em 38 (oversold). Volatilidade implícita acima da média histórica.",
-    confidence: 64,
-    impact: "médio",
-    action: "Considerar aporte",
-    tone: "info",
-  },
-  {
-    title: "Reserva de emergência atingiu meta",
-    detail:
-      "Você acumulou o equivalente a 6,2 meses do seu padrão de gastos em renda fixa pós-fixada de alta liquidez. Excedente pode ser direcionado a aportes de longo prazo.",
-    confidence: 95,
-    impact: "alto",
-    action: "Realocar excedente",
-    tone: "positive",
-  },
-  {
-    title: "Tesouro IPCA+ com taxa atrativa",
-    detail:
-      "Yield real de 6,8% a.a. está no topo histórico dos últimos 18 meses. Boa janela para alongar duração da renda fixa.",
-    confidence: 79,
-    impact: "alto",
-    action: "Aumentar exposição",
-    tone: "info",
-  },
-];
+const RECOMMENDATIONS: {
+  title: string;
+  detail: string;
+  confidence: number;
+  impact: string;
+  action: string;
+  tone: string;
+}[] = [];
 
-const SENTIMENT = [
-  { sector: "Tech BR", value: 0.32 },
-  { sector: "Bancos", value: 0.78 },
-  { sector: "Commodities", value: 0.55 },
-  { sector: "Varejo", value: 0.21 },
-  { sector: "Energia", value: 0.62 },
-  { sector: "Cripto", value: 0.41 },
-  { sector: "FIIs", value: 0.38 },
-  { sector: "Tech US", value: 0.84 },
-];
+const SENTIMENT: { sector: string; value: number }[] = [];
 
 export default function InsightsPage() {
   return (
@@ -77,13 +29,24 @@ export default function InsightsPage() {
         <div className="lg:col-span-2">
           <Section
             title="Recomendações"
-            description={`${RECOMMENDATIONS.length} insights baseados na sua carteira e dados de mercado`}
+            description={
+              RECOMMENDATIONS.length > 0
+                ? `${RECOMMENDATIONS.length} insights baseados na sua carteira e dados de mercado`
+                : "Insights aparecerão quando houver dados de carteira"
+            }
             bodyPadding={false}
           >
             <ul className="divide-y divide-zinc-50">
-              {RECOMMENDATIONS.map((r, i) => (
-                <RecommendationItem key={i} rec={r} />
-              ))}
+              {RECOMMENDATIONS.length === 0 ? (
+                <li className="flex flex-col items-center gap-2 px-6 py-12 text-center">
+                  <span className="text-sm font-medium text-zinc-400">Nenhum insight disponível</span>
+                  <span className="text-xs text-zinc-500">Adicione ativos à carteira para receber recomendações personalizadas.</span>
+                </li>
+              ) : (
+                RECOMMENDATIONS.map((r, i) => (
+                  <RecommendationItem key={i} rec={r} />
+                ))
+              )}
             </ul>
           </Section>
         </div>
@@ -93,21 +56,29 @@ export default function InsightsPage() {
             title="Sentimento de mercado"
             description="Radar por setor · últimos 30 dias"
           >
-            <SentimentRadar />
-            <div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 text-xs">
-              <span className="flex items-center gap-1.5 text-zinc-500">
-                <span className="h-2 w-2 rounded-full bg-rose-400" />
-                Bearish
-              </span>
-              <span className="flex items-center gap-1.5 text-zinc-500">
-                <span className="h-2 w-2 rounded-full bg-zinc-300" />
-                Neutro
-              </span>
-              <span className="flex items-center gap-1.5 text-zinc-500">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                Bullish
-              </span>
-            </div>
+            {SENTIMENT.length === 0 ? (
+              <div className="flex h-56 flex-col items-center justify-center gap-2 text-center">
+                <span className="text-sm font-medium text-zinc-400">Sem dados de sentimento</span>
+              </div>
+            ) : (
+              <SentimentRadar />
+            )}
+            {SENTIMENT.length > 0 && (
+              <div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 text-xs">
+                <span className="flex items-center gap-1.5 text-zinc-500">
+                  <span className="h-2 w-2 rounded-full bg-rose-400" />
+                  Bearish
+                </span>
+                <span className="flex items-center gap-1.5 text-zinc-500">
+                  <span className="h-2 w-2 rounded-full bg-zinc-300" />
+                  Neutro
+                </span>
+                <span className="flex items-center gap-1.5 text-zinc-500">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  Bullish
+                </span>
+              </div>
+            )}
           </Section>
 
           <Section

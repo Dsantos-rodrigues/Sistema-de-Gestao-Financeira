@@ -28,4 +28,4 @@ EXPOSE 3000
 # 1. Roda as migrations automaticamente (cria/atualiza as tabelas no banco)
 # 2. Sobe o servidor NestJS em modo dev com hot reload
 # O "&&" garante que o servidor só sobe se as migrations rodarem com sucesso
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start:dev"]
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npm run start:dev"]

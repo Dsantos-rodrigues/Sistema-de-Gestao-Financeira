@@ -15,9 +15,9 @@ const TABS = [
 export function TabsNav() {
   const pathname = usePathname();
   return (
-    <div className="sticky top-14 z-30 border-b border-zinc-200 bg-zinc-50/95 backdrop-blur">
+    <div className="sticky top-14 z-30 border-b border-white/10 bg-ink-900">
       <div className="flex items-center justify-between gap-4 px-6">
-        <nav className="-mb-px flex overflow-x-auto">
+        <nav className="scrollbar-none -mb-px flex overflow-x-auto">
           {TABS.map((t) => {
             const active =
               pathname === t.href || pathname.startsWith(t.href + "/");
@@ -27,13 +27,13 @@ export function TabsNav() {
                 href={t.href}
                 className={`relative flex h-11 items-center whitespace-nowrap px-3.5 text-sm transition-colors ${
                   active
-                    ? "font-medium text-ink-900"
-                    : "text-zinc-500 hover:text-zinc-900"
+                    ? "font-medium text-white"
+                    : "text-zinc-400 hover:text-zinc-200"
                 }`}
               >
                 {t.label}
                 {active && (
-                  <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-ink-900" />
+                  <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-gold-400" />
                 )}
               </Link>
             );

@@ -17,23 +17,23 @@ export function Section({
 }) {
   return (
     <section
-      className={`rounded-2xl border border-zinc-200/80 bg-white ${className}`}
+      className={`rounded-2xl border border-white/10 bg-zinc-800 ${className}`}
     >
       {(title || action) && (
         <header className="flex items-start justify-between gap-4 px-6 py-5">
           <div className="flex flex-col gap-0.5">
             {title && (
-              <h2 className="text-sm font-semibold text-ink-900">{title}</h2>
+              <h2 className="text-sm font-semibold text-white">{title}</h2>
             )}
             {description && (
-              <p className="text-xs text-zinc-500">{description}</p>
+              <p className="text-xs text-zinc-400">{description}</p>
             )}
           </div>
           {action}
         </header>
       )}
       <div
-        className={`${title ? "border-t border-zinc-100" : ""} ${
+        className={`${title ? "border-t border-white/5" : ""} ${
           bodyPadding ? "p-6" : ""
         }`}
       >
@@ -55,25 +55,25 @@ export function KpiCard({
   hint?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-zinc-200/80 bg-white p-5">
-      <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+    <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-zinc-800 p-5">
+      <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-400">
         {label}
       </span>
       <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-semibold tracking-tight text-ink-900">
+        <span className="text-2xl font-semibold tracking-tight text-white">
           {value}
         </span>
         {delta && (
           <span
             className={`text-xs font-medium ${
-              delta.positive === false ? "text-rose-600" : "text-emerald-600"
+              delta.positive === false ? "text-rose-400" : "text-emerald-400"
             }`}
           >
             {delta.value}
           </span>
         )}
       </div>
-      {hint && <span className="text-xs text-zinc-500">{hint}</span>}
+      {hint && <span className="text-xs text-zinc-400">{hint}</span>}
     </div>
   );
 }
@@ -86,12 +86,12 @@ export function Chip({
   tone?: "neutral" | "gold" | "positive" | "negative" | "info" | "ink";
 }) {
   const tones = {
-    neutral: "bg-zinc-100 text-zinc-700 ring-zinc-200/80",
-    gold: "bg-gold-200/40 text-gold-600 ring-gold-300/50",
-    positive: "bg-emerald-50 text-emerald-700 ring-emerald-200/60",
-    negative: "bg-rose-50 text-rose-700 ring-rose-200/60",
-    info: "bg-sky-50 text-sky-700 ring-sky-200/60",
-    ink: "bg-ink-900 text-zinc-50 ring-ink-900",
+    neutral: "bg-zinc-700 text-zinc-300 ring-white/10",
+    gold: "bg-gold-500/20 text-gold-400 ring-gold-400/30",
+    positive: "bg-emerald-500/20 text-emerald-400 ring-emerald-400/30",
+    negative: "bg-rose-500/20 text-rose-400 ring-rose-400/30",
+    info: "bg-sky-500/20 text-sky-400 ring-sky-400/30",
+    ink: "bg-ink-900 text-zinc-50 ring-white/10",
   };
   return (
     <span
@@ -114,10 +114,10 @@ export function PageHeader({
   return (
     <header className="flex items-start justify-between gap-4 pb-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink-900">
+        <h1 className="text-2xl font-semibold tracking-tight text-white">
           {title}
         </h1>
-        {description && <p className="text-sm text-zinc-500">{description}</p>}
+        {description && <p className="text-sm text-zinc-400">{description}</p>}
       </div>
       {action}
     </header>

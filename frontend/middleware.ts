@@ -5,12 +5,10 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')
 
   const isPublicPage =
-    request.nextUrl.pathname === '/' ||
-    request.nextUrl.pathname === '/login' ||
-    request.nextUrl.pathname === '/register'
+    request.nextUrl.pathname === '/'
 
   if (!token && !isPublicPage) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   if (token && isPublicPage) {
@@ -23,8 +21,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/login',
-    '/register',
     '/dashboard/:path*',
     '/portfolio/:path*',
     '/transactions/:path*',

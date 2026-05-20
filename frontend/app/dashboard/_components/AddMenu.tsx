@@ -71,8 +71,8 @@ export function AddMenu() {
         Adicionar
       </button>
       {open && (
-        <div className="absolute right-0 top-10 z-40 w-72 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-[0_8px_28px_rgba(15,15,15,0.08)]">
-          <div className="border-b border-zinc-100 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+        <div className="absolute right-0 top-10 z-40 w-72 overflow-hidden rounded-xl border border-white/10 bg-zinc-800 shadow-[0_16px_40px_rgba(0,0,0,0.4)]">
+          <div className="border-b border-white/5 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
             Cadastro manual
           </div>
           <ul className="p-1">
@@ -81,16 +81,16 @@ export function AddMenu() {
                 <button
                   type="button"
                   onClick={() => pick(it.key)}
-                  className="flex w-full items-start gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-zinc-50"
+                  className="flex w-full items-start gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-white/5"
                 >
-                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-gold-200/50 text-gold-600">
+                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-gold-400/15 text-gold-400">
                     <Icon name={it.key} />
                   </span>
                   <span className="flex flex-col">
-                    <span className="text-sm font-medium text-ink-900">
+                    <span className="text-sm font-medium text-white">
                       {it.label}
                     </span>
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-zinc-400">
                       {it.description}
                     </span>
                   </span>

@@ -89,7 +89,7 @@ function LoginPanel() {
       setErro("");
       setLoading(true);
 
-      const data = await api.post<{ token: string }>(
+      const data = await api.post<{ token: string; user: { name: string } }>(
         "/auth/login",
         {
           email,
@@ -98,6 +98,7 @@ function LoginPanel() {
       );
 
       saveToken(data.token);
+      localStorage.setItem("userName", data.user.name);
 
       window.location.href = "/dashboard";
     } catch (err: unknown) {
@@ -245,7 +246,7 @@ function RegisterPanel() {
         password,
       });
 
-      const loginData = await api.post<{ token: string }>(
+      const loginData = await api.post<{ token: string; user: { name: string } }>(
         "/auth/login",
         {
           email,
@@ -254,6 +255,7 @@ function RegisterPanel() {
       );
 
       saveToken(loginData.token);
+      localStorage.setItem("userName", loginData.user.name);
 
       window.location.href = "/dashboard";
     } catch (err: unknown) {

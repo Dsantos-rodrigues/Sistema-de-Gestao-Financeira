@@ -1,31 +1,45 @@
-# Dockerfile do backend NestJS
-# Usado pelo docker-compose para montar a imagem do serviço backend
+# Dockerfile do backend NestJS — produção
+# Multi-stage: stage 1 compila o TypeScript, stage 2 roda só o dist
 
-# Usa Node.js 20 com Alpine Linux (imagem leve, ~50MB vs ~900MB do ubuntu)
-FROM node:20-alpine
+# ── Stage 1: build ────────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
 
-# Define /app como diretório de trabalho dentro do container
+# Instala o OpenSSL necessário para o Prisma no Alpine Linux
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
-# Copia só os arquivos de dependências primeiro
-# Isso aproveita o cache do Docker: se package.json não mudar, não reinstala tudo
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Instala as dependências com versões exatas do package-lock.json (mais seguro que npm install)
 RUN npm ci
 
-# Gera o Prisma Client dentro do container (necessário antes de rodar o servidor)
-RUN npx prisma generate
-
-# Copia o restante do código para dentro do container
 COPY . .
 
-# Informa ao Docker que o container usa a porta 3000 (documentação, não abre a porta sozinho)
-EXPOSE 3000
+RUN npm run build
 
-# Script de entrada:
-# 1. Roda as migrations automaticamente (cria/atualiza as tabelas no banco)
-# 2. Sobe o servidor NestJS em modo dev com hot reload
-# O "&&" garante que o servidor só sobe se as migrations rodarem com sucesso
-CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npm run start:dev"]
+# ── Stage 2: produção ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+
+# Instala o OpenSSL também no ambiente de execução final
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instala só as dependências de produção
+RUN npm ci --omit=dev
+
+# Gera o Prisma Client
+RUN npx prisma generate
+
+# Copia o código compilado do stage anterior
+COPY --from=builder /app/dist ./dist
+
+# Cloud Run / Railway injetam a variável PORT automaticamente
+EXPOSE 8080
+
+# Roda migrations e sobe o servidor de produção (com fallback de caminho)
+CMD ["sh", "-c", "npx prisma migrate deploy && (node dist/main || node dist/src/main)"]

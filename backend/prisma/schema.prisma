@@ -3,7 +3,8 @@
 // Para aplicar as mudanças: npx prisma migrate dev --name nome_da_migration
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -85,15 +86,15 @@ model Wallet {
 // Tabela de ativos financeiros do usuário
 model Asset {
   id            String    @id @default(uuid())
-  name          String                           // nome do ativo (ex: "Petrobras", "Bitcoin")
-  ticker        String?                          // código do ativo (ex: "PETR4", "BTC") — opcional
-  type          AssetType                        // STOCK, CRYPTO, REAL_ESTATE, FIXED_INCOME, FUND ou OTHER
-  quantity      Decimal   @db.Decimal(18, 8)    // quantidade com 8 casas (alta precisão para cripto)
-  purchasePrice Decimal   @db.Decimal(10, 2)    // preço pago na compra
-  currentPrice  Decimal   @db.Decimal(10, 2)    // preço atual (atualizado manualmente ou via API)
-  purchasedAt   DateTime                         // data da compra do ativo
+  name          String                             // nome do ativo (ex: "Petrobras", "Bitcoin")
+  ticker        String?                            // código do ativo (ex: "PETR4", "BTC") — opcional
+  type          AssetType                          // STOCK, CRYPTO, REAL_ESTATE, FIXED_INCOME, FUND ou OTHER
+  quantity      Decimal   @db.Decimal(18, 8)     // quantidade com 8 casas (alta precisão para cripto)
+  purchasePrice Decimal   @db.Decimal(10, 2)     // preço pago na compra
+  currentPrice  Decimal   @db.Decimal(10, 2)     // preço atual (atualizado manualmente ou via API)
+  purchasedAt   DateTime                           // data da compra do ativo
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  userId        String                           // dono do ativo
+  userId        String                             // dono do ativo
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

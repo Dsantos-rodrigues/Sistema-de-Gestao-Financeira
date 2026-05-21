@@ -1,19 +1,21 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Public } from '../auth/decorators/public.decorator';
 import { MarketService } from './market.service';
 
 @ApiTags('Mercado')
-@ApiBearerAuth('JWT')
 @Controller('market')
 export class MarketController {
   constructor(private readonly marketService: MarketService) {}
 
+  @Public()
   @Get('summary')
   @ApiOperation({ summary: 'Resumo de mercado com cambio, acoes, cripto e indicadores' })
   getSummary() {
     return this.marketService.getSummary();
   }
 
+  @Public()
   @Get('search')
   @ApiOperation({ summary: 'Buscar ativos para autocomplete por nome, ticker ou termo parecido' })
   @ApiQuery({
@@ -32,6 +34,7 @@ export class MarketController {
     return this.marketService.searchAssets(query, kind);
   }
 
+  @Public()
   @Get('quotes')
   @ApiOperation({ summary: 'Buscar cotacoes normalizadas por simbolo' })
   @ApiQuery({

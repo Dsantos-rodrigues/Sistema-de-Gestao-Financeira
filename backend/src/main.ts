@@ -15,9 +15,17 @@ async function bootstrap() {
   // impede ataques como clickjacking, sniffing de MIME type e outros
   app.use(helmet());
 
-  // habilita CORS apenas para o frontend (porta 3001)
-  // bloqueia requisições de origens desconhecidas
-  app.enableCors({ origin: 'http://localhost:3001' });
+  // habilita CORS para o frontend — local e qualquer deploy na Vercel
+  app.enableCors({
+    origin: (origin, callback) => {
+      const allowed =
+        !origin ||
+        origin === 'http://localhost:3001' ||
+        /\.vercel\.app$/.test(origin) ||
+        origin === process.env.FRONTEND_URL;
+      callback(null, allowed ? origin : false);
+    },
+  });
 
   // ── Configuração global ──────────────────────────────────────────────────────
 

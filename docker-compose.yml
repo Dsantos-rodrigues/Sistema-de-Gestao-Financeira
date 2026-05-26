@@ -1,69 +1,57 @@
-# docker-compose.yml — orquestra todos os serviços do projeto em containers
-# Para subir tudo:    docker compose up --build
-# Para parar tudo:    docker compose down
-# Para apagar dados:  docker compose down -v  (remove o volume do banco também)
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Docker Compose LOCAL — Motor de IA + Redis
+# ATENÇÃO: PostgreSQL e Redis rodam aqui apenas em DEV.
+# Em produção, usar Cloud SQL + Memorystore (GCP).
+# ─────────────────────────────────────────────────────────────────────────────
 
 services:
 
-  # ─── Banco de dados PostgreSQL ────────────────────────────────────────────────
-  postgres:
-    image: postgres:16-alpine  # versão 16, alpine = imagem menor
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}         # usuário do banco (padrão: postgres)
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # senha do banco (padrão: postgres)
-      POSTGRES_DB: ${POSTGRES_DB:-financeiro}           # nome do banco criado automaticamente
+  motor-ia:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: motor-ia
+    restart: unless-stopped
     ports:
-      - "5432:5432"  # permite conexão local via DBeaver/pgAdmin
+      - "8080:8080"
+    environment:
+      - APP_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CORE_API_URL=http://host.docker.internal:3000
+      - CORE_API_KEY=${CORE_API_KEY:-dev-api-key}
+      - PORT=8080
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - fintech-net
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # persiste os dados entre reinicializações
+      - ./app:/app/app  # Hot reload em dev
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: fintech-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save ""
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
-      interval: 5s   # verifica a cada 5 segundos
-      timeout: 5s    # aguarda no máximo 5s por resposta
-      retries: 10    # tenta 10 vezes antes de considerar falha
-      start_period: 10s  # aguarda 10s antes de começar a verificar (banco demora para iniciar)
-
-  # ─── API backend em NestJS ────────────────────────────────────────────────────
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"  # API acessível em http://localhost:3000
-      # Swagger disponível em http://localhost:3000/docs
-    env_file:
-      - .env  # carrega todas as variáveis de ambiente do arquivo .env na raiz
-    depends_on:
-      postgres:
-        condition: service_healthy  # só sobe após o postgres estar saudável
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - fintech-net
     volumes:
-      - ./backend/src:/app/src          # hot reload: salvar arquivo reinicia o servidor
-      - ./backend/prisma:/app/prisma    # sincroniza o schema e migrations
+      - redis_data:/data
 
-  # ─── Interface web em Next.js ─────────────────────────────────────────────────
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3000"  # Next.js roda na 3000 dentro do container, exposto na 3001
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3000  # endereço da API usado pelo browser
-    depends_on:
-      - backend  # garante que o backend já está de pé antes do frontend subir
-    volumes:
-      - ./frontend/app:/app/app  # hot reload das páginas Next.js
+networks:
+  fintech-net:
+    driver: bridge
 
-  # ─── Serviço de inteligência artificial em FastAPI ────────────────────────────
-  ia:
-    build:
-      context: ./ia
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"  # API de IA acessível em http://localhost:8000
-    volumes:
-      - ./ia:/app  # hot reload: qualquer alteração no .py reflete imediatamente
-
-# ─── Volumes nomeados ─────────────────────────────────────────────────────────
 volumes:
-  postgres_data:  # gerenciado pelo Docker — persiste os dados do PostgreSQL
+  redis_data:
